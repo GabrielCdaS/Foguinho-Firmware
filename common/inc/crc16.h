@@ -12,18 +12,18 @@
 #ifndef CRC16_H
 #define CRC16_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* ============================================================
  * Constantes do CRC-16/CCITT
  * ============================================================ */
 
 /** Polinômio gerador CRC-16/CCITT */
-#define CRC16_POLINOMIO       (0x1021)
+#define CRC16_POLINOMIO (0x1021)
 
 /** Valor inicial do registrador CRC */
-#define CRC16_VALOR_INICIAL   (0xFFFF)
+#define CRC16_VALOR_INICIAL (0xFFFF)
 
 /* ============================================================
  * Protótipos das funções
@@ -53,6 +53,7 @@ uint16_t crc16_calculate(const uint8_t *dados, uint16_t tamanho);
  * @return             true se o CRC calculado for igual ao esperado,
  *                     false caso contrário.
  */
-bool crc16_verificar(const uint8_t *dados, uint16_t tamanho, uint16_t crc_esperado);
+bool crc16_verificar(const uint8_t *dados, uint16_t tamanho,
+                     uint16_t crc_esperado);
 
 #endif /* CRC16_H */
