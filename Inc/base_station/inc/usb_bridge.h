@@ -69,7 +69,7 @@ status_t usb_bridge_enviar(const uint8_t *dados, uint16_t tamanho);
  *
  * Serializa a estrutura de telemetria e a transmite via USB CDC.
  * O pacote é enviado no formato binário definido pelo protocolo
- * comum (23 bytes), incluindo header e CRC.
+ * comum (34 bytes), incluindo header e CRC.
  *
  * @param[in] pacote  Ponteiro para a estrutura de pacote de telemetria.
  *

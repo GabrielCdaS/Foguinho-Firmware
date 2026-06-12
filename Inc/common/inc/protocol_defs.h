@@ -141,6 +141,6 @@ typedef struct {
  * possui exatamente o tamanho especificado pelo protocolo.
  */
 _Static_assert(sizeof(telemetry_packet_t) == PROTOCOL_PACKET_SIZE,
-               "Erro: tamanho de telemetry_packet_t deve ser 23 bytes");
+               "Erro: tamanho de telemetry_packet_t deve ser 34 bytes");
 
 #endif /* PROTOCOL_DEFS_H */

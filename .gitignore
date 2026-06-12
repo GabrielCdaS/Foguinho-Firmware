@@ -1,9 +1,11 @@
-# ============================================
-# .gitignore — Projeto Foguinho
-# Firmware embarcado em C (STM32)
-# ============================================
+# Build directories
+build/
+out/
+Build/
+release/
+debug/
 
-# --- Arquivos de compilação ---
+# Compiler and linker outputs
 *.o
 *.obj
 *.elf
@@ -14,35 +16,19 @@
 *.d
 *.su
 *.i
-*.s
 
-# --- Diretórios de build ---
-build/
-Build/
-out/
-release/
-debug/
-
-# --- IDE e editor ---
-.vscode/
+# Editor and IDE files not shared by this project
 .idea/
 *.swp
 *.swo
 *~
-.project
-.cproject
-.settings/
-
-# --- STM32CubeIDE / STM32CubeMX ---
 *.launch
 *.ioc.bak
 
-# --- Arquivos de sistema ---
+# Operating system and temporary files
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# --- Arquivos temporários ---
 *.tmp
 *.bak
 *.log
