@@ -67,6 +67,13 @@ typedef struct {
     /* Bateria */
     float tensao_bateria_mv;    /**< Tensão da bateria em milivolts */
 
+    /* GPS (NEO-M8N / NEO-M9N) */
+    float latitude;             /**< Latitude em graus decimais */
+    float longitude;            /**< Longitude em graus decimais */
+    float gps_altitude_m;       /**< Altitude do GPS em metros */
+    uint8_t gps_satellites;     /**< Número de satélites visíveis */
+    bool gps_fix_valid;         /**< Indica se o fix do GPS é válido */
+
     /* Timestamp */
     uint32_t timestamp_ms;      /**< Timestamp da leitura em milissegundos */
 } dados_sensores_t;

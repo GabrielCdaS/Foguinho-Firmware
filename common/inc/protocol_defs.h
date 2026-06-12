@@ -29,7 +29,7 @@
 #define PROTOCOL_TELEMETRY_PERIOD_MS (100)
 
 /** Tamanho total do pacote de telemetria em bytes */
-#define PROTOCOL_PACKET_SIZE        (23)
+#define PROTOCOL_PACKET_SIZE        (34)
 
 /* ============================================================
  * Enumeração dos estados de voo (FSM)
@@ -75,7 +75,7 @@ typedef enum {
 /**
  * @brief Pacote de telemetria enviado do foguete para a estação base.
  *
- * Layout binário de 23 bytes, transmitido a cada 100 ms (10 Hz).
+ * Layout binário de 34 bytes, transmitido a cada 100 ms (10 Hz).
  *
  * | Campo            | Tipo     | Tamanho | Descrição                        |
  * |------------------|----------|---------|----------------------------------|
@@ -87,6 +87,10 @@ typedef enum {
  * | acceleration_g   | float    | 4 B     | Aceleração resultante (g)        |
  * | battery_mv       | uint16_t | 2 B     | Tensão da bateria (mV)           |
  * | flight_state     | uint8_t  | 1 B     | Estado atual da FSM              |
+ * | gps_latitude     | int32_t  | 4 B     | Latitude escalada por 1e7        |
+ * | gps_longitude    | int32_t  | 4 B     | Longitude escalada por 1e7       |
+ * | gps_altitude_m   | int16_t  | 2 B     | Altitude do GPS em metros        |
+ * | gps_info         | uint8_t  | 1 B     | Fix e satélites                  |
  * | crc16            | uint16_t | 2 B     | CRC-16/CCITT do pacote           |
  */
 typedef struct {
@@ -98,6 +102,10 @@ typedef struct {
     float    acceleration_g;   /**< Aceleração resultante em g */
     uint16_t battery_mv;       /**< Tensão da bateria em milivolts */
     uint8_t  flight_state;     /**< Estado atual (flight_state_t) */
+    int32_t  gps_latitude;     /**< Latitude escalada por 1e7 (ex: -23.4567890 -> -234567890) */
+    int32_t  gps_longitude;    /**< Longitude escalada por 1e7 */
+    int16_t  gps_altitude_m;   /**< Altitude do GPS em metros */
+    uint8_t  gps_info;         /**< Bit 7: Fix válido (1) / inválido (0). Bits 0-6: Número de satélites */
     uint16_t crc16;            /**< CRC-16/CCITT para verificação de integridade */
 } telemetry_packet_t;
 

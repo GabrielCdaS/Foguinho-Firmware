@@ -97,14 +97,14 @@
 #define PINO_USART1_RX_PINO     10              /**< USART1 RX - PA10 */
 
 /* ============================================================================
- * USART2 — Reserva
+ * USART2 — Módulo GPS (NEO-M8N / NEO-M9N)
  * ========================================================================= */
 
-#define PINO_USART2_TX_PORTA    GPIO_PORTA_A    /**< USART2 TX (reserva) - Porta */
-#define PINO_USART2_TX_PINO     2               /**< USART2 TX - PA2 */
+#define PINO_GPS_USART_TX_PORTA GPIO_PORTA_A    /**< GPS USART TX - Porta */
+#define PINO_GPS_USART_TX_PINO  2               /**< GPS USART TX - PA2 */
 
-#define PINO_USART2_RX_PORTA    GPIO_PORTA_A    /**< USART2 RX (reserva) - Porta */
-#define PINO_USART2_RX_PINO     3               /**< USART2 RX - PA3 */
+#define PINO_GPS_USART_RX_PORTA GPIO_PORTA_A    /**< GPS USART RX - Porta */
+#define PINO_GPS_USART_RX_PINO  3               /**< GPS USART RX - PA3 */
 
 /* ============================================================================
  * ADC — Monitoramento de Bateria

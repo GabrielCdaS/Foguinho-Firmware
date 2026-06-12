@@ -89,4 +89,10 @@
 /** Habilita o módulo de recuperação (acionamento pirotécnico) */
 #define HABILITAR_RECUPERACAO   1
 
+/** Habilita o módulo de GPS (NEO-M8N/NEO-M9N) */
+#define HABILITAR_GPS           1
+
+/** Baudrate do módulo GPS (9600 para NEO-M8N, 38400 para NEO-M9N) */
+#define GPS_BAUDRATE            9600
+
 #endif /* CONFIG_H */
