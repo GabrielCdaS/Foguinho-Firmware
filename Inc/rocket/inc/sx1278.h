@@ -63,9 +63,8 @@
  * Configuração Padrão de Frequência
  * ========================================================================= */
 
-#define SX1278_FREQUENCIA_915MHZ    915000000UL /**< Frequência ISM 915 MHz (Américas) */
-#define SX1278_FREQUENCIA_433MHZ    433000000UL /**< Frequência ISM 433 MHz (Europa/Ásia) */
-#define SX1278_FREQUENCIA_PADRAO    SX1278_FREQUENCIA_915MHZ /**< Frequência padrão utilizada */
+#define SX1278_FREQUENCIA_433MHZ    433000000UL /**< Frequência compatível com o SX1278 */
+#define SX1278_FREQUENCIA_PADRAO    SX1278_FREQUENCIA_433MHZ /**< Frequência padrão utilizada */
 
 /* ============================================================================
  * Configuração Padrão LoRa
@@ -163,7 +162,7 @@ status_t sx1278_receber(uint8_t *buffer, uint8_t *tamanho, uint32_t timeout_ms);
 
 /**
  * @brief Configura a frequência de operação do rádio.
- * @param[in] frequencia_hz Frequência em Hz (ex: 915000000 para 915 MHz).
+ * @param[in] frequencia_hz Frequência em Hz (ex: 433000000 para 433 MHz).
  * @return STATUS_OK em caso de sucesso.
  */
 status_t sx1278_configurar_frequencia(uint32_t frequencia_hz);

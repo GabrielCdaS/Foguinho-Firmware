@@ -21,6 +21,7 @@
 #include "recovery.h"
 #include "sx1278.h"
 #include "hal_plataforma.h"
+#include "stm32f411_hw.h"
 
 /* ============================================================================
  * Variáveis Globais de Sincronização
@@ -50,10 +51,17 @@ static void callback_transicao_estado(flight_state_t anterior, flight_state_t no
     switch (novo) {
         case FSM_ARMED:
             /* Arma os paraquedas e abre arquivo de log */
-            recuperacao_armar();
+            if (recuperacao_armar() != STATUS_OK) {
+                fsm_processar_comando(CMD_DISARM);
+                break;
+            }
             #if HABILITAR_DATALOGGER
             datalogger_abrir_arquivo(DATALOGGER_NOME_ARQUIVO_PADRAO);
             #endif
+            break;
+
+        case FSM_IDLE:
+            recuperacao_desarmar();
             break;
 
         case FSM_APOGEE:
@@ -107,7 +115,9 @@ static void sistema_inicializar(void) {
     datalogger_inicializar();
     #endif
 
-    bateria_inicializar();
+    #if HABILITAR_TELEMETRIA
+    sx1278_inicializar();
+    #endif
 
     /* Nota: sx1278_inicializar pode depender da implementação real do rádio.
      * Como sx1278.h foi analisado, a assinatura normalmente ficaria disponível
@@ -155,10 +165,14 @@ int main(void) {
          * ------------------------------------------------------------------ */
 
         /* Lê todos os sensores da IMU e Barômetro */
-        sensores_ler_todos(&sensores);
+        if (sensores_ler_todos(&sensores) != STATUS_OK) {
+            continue;
+        }
 
         /* Atualiza a fusão sensorial (Altitude, Velocidade) */
-        fusao_atualizar(&sensores);
+        if (fusao_atualizar(&sensores) != STATUS_OK) {
+            continue;
+        }
 
         /* Atualiza a máquina de estados (Detecta lançamento, apogeu, etc) */
         fsm_atualizar(&sensores);
