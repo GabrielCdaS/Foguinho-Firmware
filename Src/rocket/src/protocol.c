@@ -7,6 +7,7 @@
 #include "sx1278.h"
 #include "crc16.h"
 #include <stddef.h>
+#include <string.h>
 
 #define MAX_COMANDOS_FILA 10
 
@@ -26,30 +27,30 @@ status_t protocolo_inicializar(void) {
 }
 
 status_t protocolo_processar_recebidos(void) {
-    uint8_t buffer[64];
+    uint8_t buffer[SX1278_TAMANHO_MAX_PACOTE];
     uint8_t tamanho = 0;
 
     status_t res = sx1278_receber(buffer, &tamanho, 0);
-    if (res == STATUS_OK && tamanho == sizeof(command_packet_t)) {
-        command_packet_t *pacote = (command_packet_t *)buffer;
+    if (res == STATUS_ERRO_TIMEOUT) return STATUS_OK;
+    if (res != STATUS_OK) return res;
+    if (tamanho != sizeof(command_packet_t)) return STATUS_ERRO_GENERICO;
 
-        if (pacote->header == PROTOCOL_HEADER_BYTE) {
-            uint16_t crc_calculado = crc16_calculate(buffer, tamanho - 2);
-            if (crc_calculado == pacote->crc16) {
-                /* CRC Válido, enfileirar comando */
-                if (fila_tamanho < MAX_COMANDOS_FILA) {
-                    fila_comandos[fila_fim] = (command_id_t)pacote->command_id;
-                    fila_fim = (fila_fim + 1) % MAX_COMANDOS_FILA;
-                    fila_tamanho++;
-
-                    if (callback_comando != NULL) {
-                        callback_comando((command_id_t)pacote->command_id);
-                    }
-                }
-            }
-        }
+    command_packet_t pacote;
+    memcpy(&pacote, buffer, sizeof(pacote));
+    if (pacote.header != PROTOCOL_HEADER_BYTE) return STATUS_ERRO_GENERICO;
+    if (!crc16_verificar(buffer, (uint16_t)(tamanho - sizeof(pacote.crc16)), pacote.crc16)) {
+        return STATUS_ERRO_CRC;
     }
+    if (pacote.command_id < CMD_ARM || pacote.command_id > CMD_STOP_LOG) {
+        return STATUS_ERRO_GENERICO;
+    }
+    if (fila_tamanho >= MAX_COMANDOS_FILA) return STATUS_ERRO_GENERICO;
 
+    command_id_t comando = (command_id_t)pacote.command_id;
+    fila_comandos[fila_fim] = comando;
+    fila_fim = (uint8_t)((fila_fim + 1U) % MAX_COMANDOS_FILA);
+    fila_tamanho++;
+    if (callback_comando != NULL) callback_comando(comando);
     return STATUS_OK;
 }
 
@@ -58,13 +59,11 @@ bool protocolo_comando_disponivel(void) {
 }
 
 status_t protocolo_obter_comando(command_id_t *comando) {
-    if (fila_tamanho == 0) {
+    if (!comando || fila_tamanho == 0U) {
         return STATUS_ERRO_GENERICO;
     }
 
-    if (comando) {
-        *comando = fila_comandos[fila_inicio];
-    }
+    *comando = fila_comandos[fila_inicio];
 
     fila_inicio = (fila_inicio + 1) % MAX_COMANDOS_FILA;
     fila_tamanho--;

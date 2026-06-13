@@ -4,6 +4,8 @@
  */
 
 #include "battery.h"
+#include "pinout.h"
+#include "stm32f411_hw.h"
 
 /* ============================================================================
  * Variáveis Internas
@@ -15,27 +17,29 @@ static uint16_t tensao_atual_mv = BATERIA_TENSAO_NOMINAL_MV;
  * ========================================================================= */
 
 status_t bateria_inicializar(void) {
-    /* TODO: Configurar o clock do ADC1 e GPIOA (PA0 como analógico) */
-    /* Exemplo:
-     * RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
-     * RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-     * GPIOA->MODER |= GPIO_MODER_MODE0; // Analog mode
-     * ADC1->CR2 |= ADC_CR2_ADON;
-     */
-    return STATUS_OK;
+    hw_gpio_analog(PINO_BATERIA_ADC_PORTA, PINO_BATERIA_ADC_PINO);
+    return hw_adc1_init_channel(PINO_BATERIA_ADC_CANAL);
 }
 
 uint16_t bateria_ler_tensao_mv(void) {
-    /* TODO: Iniciar conversão ADC e aguardar EOC */
-    /* Exemplo:
-     * ADC1->CR2 |= ADC_CR2_SWSTART;
-     * while (!(ADC1->SR & ADC_SR_EOC));
-     * uint16_t adc_val = ADC1->DR;
-     * float tensao_pino_mv = (adc_val * ADC_VREF_MV) / ((1 << ADC_RESOLUCAO_BITS) - 1);
-     * tensao_atual_mv = (uint16_t)(tensao_pino_mv * BATERIA_DIVISOR_RESISTIVO_FATOR);
-     */
+    uint32_t soma = 0;
+    uint16_t leitura;
+    uint8_t amostras = 0;
 
-    /* Simulação temporária mantendo o valor nominal */
+    for (uint8_t i = 0; i < 16U; ++i) {
+        if (hw_adc1_read(&leitura) == STATUS_OK) {
+            soma += leitura;
+            amostras++;
+        }
+    }
+
+    if (amostras > 0U) {
+        uint32_t media = soma / amostras;
+        float tensao = ((float)media * (float)ADC_VREF_MV /
+                        (float)((1UL << ADC_RESOLUCAO_BITS) - 1UL)) *
+                       BATERIA_DIVISOR_RESISTIVO_FATOR;
+        tensao_atual_mv = (uint16_t)tensao;
+    }
     return tensao_atual_mv;
 }
 

@@ -19,7 +19,7 @@ status_t sensores_inicializar(void) {
     res = icm20948_inicializar();
     if (res != STATUS_OK) return res;
 
-    return STATUS_OK;
+    return bateria_inicializar();
 }
 
 status_t sensores_ler_todos(dados_sensores_t *dados) {
@@ -27,17 +27,28 @@ status_t sensores_ler_todos(dados_sensores_t *dados) {
 
     dados->timestamp_ms = plataforma_obter_tick_ms();
 
-    bmp388_ler_pressao(&dados->pressao_pa);
-    bmp388_ler_temperatura(&dados->temperatura_c);
-    bmp388_calcular_altitude(dados->pressao_pa, &dados->altitude_m);
+    status_t status = bmp388_ler_pressao(&dados->pressao_pa);
+    if (status != STATUS_OK) return status;
+    status = bmp388_ler_temperatura(&dados->temperatura_c);
+    if (status != STATUS_OK) return status;
+    status = bmp388_calcular_altitude(dados->pressao_pa, &dados->altitude_m);
+    if (status != STATUS_OK) return status;
 
-    icm20948_ler_acelerometro(&dados->aceleracao_x_g, &dados->aceleracao_y_g, &dados->aceleracao_z_g);
-    icm20948_ler_giroscopio(&dados->giroscopio_x_dps, &dados->giroscopio_y_dps, &dados->giroscopio_z_dps);
-    icm20948_ler_magnetometro(&dados->magnetometro_x_ut, &dados->magnetometro_y_ut, &dados->magnetometro_z_ut);
+    status = icm20948_ler_acelerometro(&dados->aceleracao_x_g, &dados->aceleracao_y_g,
+                                       &dados->aceleracao_z_g);
+    if (status != STATUS_OK) return status;
+    status = icm20948_ler_giroscopio(&dados->giroscopio_x_dps, &dados->giroscopio_y_dps,
+                                     &dados->giroscopio_z_dps);
+    if (status != STATUS_OK) return status;
+    status = icm20948_ler_magnetometro(&dados->magnetometro_x_ut, &dados->magnetometro_y_ut,
+                                       &dados->magnetometro_z_ut);
+    if (status != STATUS_OK && status != STATUS_ERRO_TIMEOUT) return status;
 
     dados->tensao_bateria_mv = bateria_ler_tensao_mv();
 
-    gps_obter_dados(&dados->latitude, &dados->longitude, &dados->gps_altitude_m, &dados->gps_satellites, &dados->gps_fix_valid);
+    status = gps_obter_dados(&dados->latitude, &dados->longitude, &dados->gps_altitude_m,
+                             &dados->gps_satellites, &dados->gps_fix_valid);
+    if (status != STATUS_OK) return status;
 
     return STATUS_OK;
 }
