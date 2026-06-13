@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include "config.h"
 
+#ifndef HOST_TEST
 /* ============================================================================
  * Registradores do SysTick (Cortex-M4)
  * ========================================================================= */
@@ -24,6 +25,7 @@
 #define SYSTICK_CTRL_ENABLE_MSK     (1UL << 0)
 #define SYSTICK_CTRL_TICKINT_MSK    (1UL << 1)
 #define SYSTICK_CTRL_CLKSOURCE_MSK  (1UL << 2)
+#endif
 
 /* Variável global de timestamp incrementada na ISR do SysTick */
 extern volatile uint32_t ms_ticks;
@@ -33,12 +35,14 @@ extern volatile bool tick_pendente;
  * @brief Inicializa o SysTick para gerar uma interrupção a cada milissegundo.
  */
 static inline void plataforma_inicializar_systick(void) {
+#ifndef HOST_TEST
     /* O SysTick conta de LOAD até 0, portanto LOAD = (Clock / Frequência) - 1 */
     /* Para 1 kHz (1 ms) com CLOCK_SISTEMA_HZ = 100MHz, LOAD = 100000 - 1 */
     uint32_t ticks = CLOCK_SISTEMA_HZ / 1000;
     SYSTICK_LOAD = (ticks - 1);
     SYSTICK_VAL = 0;
     SYSTICK_CTRL = SYSTICK_CTRL_CLKSOURCE_MSK | SYSTICK_CTRL_TICKINT_MSK | SYSTICK_CTRL_ENABLE_MSK;
+#endif
 }
 
 /**

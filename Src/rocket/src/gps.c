@@ -122,6 +122,32 @@ static void processar_rmc(char *linha) {
     last_fix_ms = plataforma_obter_tick_ms();
 }
 
+status_t gps_processar_sentenca_nmea(const char *sentenca_nmea) {
+    char linha[GPS_SENTENCE_SIZE];
+    size_t tamanho;
+    if (!sentenca_nmea) return STATUS_ERRO_GENERICO;
+
+    tamanho = strlen(sentenca_nmea);
+    while (tamanho > 0U &&
+           (sentenca_nmea[tamanho - 1U] == '\r' || sentenca_nmea[tamanho - 1U] == '\n')) {
+        tamanho--;
+    }
+    if (tamanho == 0U || tamanho >= sizeof(linha)) return STATUS_ERRO_GENERICO;
+    memcpy(linha, sentenca_nmea, tamanho);
+    linha[tamanho] = '\0';
+
+    if (!checksum_valido(linha)) return STATUS_ERRO_CRC;
+    if (strncmp(linha, "$GPGGA,", 7) == 0 || strncmp(linha, "$GNGGA,", 7) == 0) {
+        processar_gga(linha);
+        return STATUS_OK;
+    }
+    if (strncmp(linha, "$GPRMC,", 7) == 0 || strncmp(linha, "$GNRMC,", 7) == 0) {
+        processar_rmc(linha);
+        return STATUS_OK;
+    }
+    return STATUS_ERRO_GENERICO;
+}
+
 status_t gps_inicializar(void) {
     rx_head = 0;
     rx_tail = 0;
@@ -145,15 +171,7 @@ status_t gps_processar(void) {
             sentence[sentence_length++] = c;
         } else if (sentence_length > 0U && c == '\n') {
             sentence[sentence_length] = '\0';
-            if (checksum_valido(sentence)) {
-                if (strncmp(sentence, "$GPGGA,", 7) == 0 ||
-                    strncmp(sentence, "$GNGGA,", 7) == 0) {
-                    processar_gga(sentence);
-                } else if (strncmp(sentence, "$GPRMC,", 7) == 0 ||
-                           strncmp(sentence, "$GNRMC,", 7) == 0) {
-                    processar_rmc(sentence);
-                }
-            }
+            gps_processar_sentenca_nmea(sentence);
             sentence_length = 0;
         } else if (sentence_length > 0U && c != '\r') {
             if (sentence_length < GPS_SENTENCE_SIZE - 1U) {

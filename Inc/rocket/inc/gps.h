@@ -39,6 +39,17 @@ status_t gps_inicializar(void);
 status_t gps_processar(void);
 
 /**
+ * @brief Valida e processa uma sentença NMEA completa.
+ *
+ * A sentença deve iniciar com '$' e incluir checksum após '*'. Esta função
+ * também é usada internamente pelo processamento do buffer da USART.
+ *
+ * @param[in] sentenca Sentença NMEA terminada em nulo.
+ * @return STATUS_OK quando a sentença suportada é válida.
+ */
+status_t gps_processar_sentenca_nmea(const char *sentenca);
+
+/**
  * @brief Obtém as últimas leituras de GPS válidas.
  *
  * @param[out] latitude     Ponteiro para receber a latitude (graus decimais).
