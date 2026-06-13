@@ -45,6 +45,14 @@
 status_t recuperacao_inicializar(void);
 
 /**
+ * @brief Atualiza a temporização dos pulsos pirotécnicos ativos.
+ *
+ * Deve ser chamada periodicamente pelo loop principal para desligar os canais
+ * ao final de TEMPO_PULSO_PIROTECNICO_MS sem bloquear a malha de controle.
+ */
+void recuperacao_processar(void);
+
+/**
  * @brief Arma o sistema de recuperação.
  *
  * Habilita os canais pirotécnicos para acionamento. Requer que a chave

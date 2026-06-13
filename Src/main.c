@@ -13,6 +13,7 @@
 #include "sensors.h"
 #include "fusion.h"
 #include "flight_state.h"
+#include "flight_defs.h"
 #include "telemetry.h"
 #include "datalogger.h"
 #include "battery.h"
@@ -34,6 +35,9 @@ volatile bool tick_pendente = false;
  * ========================================================================= */
 void SysTick_Handler(void) {
     ms_ticks++;
+    #if HABILITAR_RECUPERACAO
+    recuperacao_processar();
+    #endif
     /* Dispara o tick da malha de controle a cada PERIODO_AMOSTRAGEM_SENSORES_MS (ex: 5 ms = 200 Hz) */
     if ((ms_ticks % PERIODO_AMOSTRAGEM_SENSORES_MS) == 0) {
         tick_pendente = true;
@@ -50,13 +54,11 @@ static void callback_transicao_estado(flight_state_t anterior, flight_state_t no
     /* Ações automáticas com base na transição */
     switch (novo) {
         case FSM_ARMED:
-            /* Arma os paraquedas e abre arquivo de log */
-            if (recuperacao_armar() != STATUS_OK) {
-                fsm_processar_comando(CMD_DISARM);
-                break;
-            }
+            /* Inicia o registro automaticamente ao armar, quando disponível. */
             #if HABILITAR_DATALOGGER
-            datalogger_abrir_arquivo(DATALOGGER_NOME_ARQUIVO_PADRAO);
+            if (!datalogger_esta_pronto()) {
+                datalogger_abrir_arquivo(DATALOGGER_NOME_ARQUIVO_PADRAO);
+            }
             #endif
             break;
 
@@ -65,31 +67,81 @@ static void callback_transicao_estado(flight_state_t anterior, flight_state_t no
             break;
 
         case FSM_APOGEE:
-            /* Atingiu o apogeu: aciona o canal principal (drogue) */
+            /* O canal de emergência só atua se o acionamento principal falhar. */
             #if HABILITAR_RECUPERACAO
-            recuperacao_acionar_principal();
+            if (recuperacao_acionar_principal() != STATUS_OK) {
+                recuperacao_acionar_emergencia();
+            }
             #endif
             break;
 
         case FSM_DESCENT:
-            /* Início da descida principal (ou atingiu altitude do backup): aciona emergência */
-            #if HABILITAR_RECUPERACAO
-            /* Aqui a lógica pode ser acionar o backup apenas em uma altitude menor,
-               mas para simplificar o FSM, se entrou em DESCENT pode-se acionar o main. */
-            recuperacao_acionar_emergencia();
-            #endif
             break;
 
         case FSM_LANDED:
             /* Foguete pousou com segurança */
             #if HABILITAR_DATALOGGER
-            datalogger_flush();
-            datalogger_fechar();
+            if (datalogger_esta_pronto()) {
+                datalogger_flush();
+                datalogger_fechar();
+            }
             #endif
             break;
 
         default:
             break;
+    }
+}
+
+static command_result_t resultado_de_status(status_t status) {
+    if (status == STATUS_OK) return COMMAND_RESULT_OK;
+    if (status == STATUS_ERRO_SD) return COMMAND_RESULT_STORAGE_ERROR;
+    return COMMAND_RESULT_HARDWARE_ERROR;
+}
+
+static command_result_t executar_comando(command_id_t comando) {
+    flight_state_t estado = fsm_obter_estado();
+    if (!comando_valido_no_estado(comando, estado)) {
+        return COMMAND_RESULT_INVALID_STATE;
+    }
+
+    switch (comando) {
+        case CMD_ARM: {
+            status_t status = recuperacao_armar();
+            if (status != STATUS_OK) return COMMAND_RESULT_SAFETY_LOCK;
+            status = fsm_processar_comando(comando);
+            if (status != STATUS_OK) recuperacao_desarmar();
+            return status == STATUS_OK ? COMMAND_RESULT_OK : COMMAND_RESULT_INVALID_STATE;
+        }
+
+        case CMD_DISARM:
+            return fsm_processar_comando(comando) == STATUS_OK
+                ? COMMAND_RESULT_OK
+                : COMMAND_RESULT_INVALID_STATE;
+
+        case CMD_PING:
+            return COMMAND_RESULT_OK;
+
+        case CMD_START_LOG:
+            #if HABILITAR_DATALOGGER
+            return resultado_de_status(
+                datalogger_abrir_arquivo(DATALOGGER_NOME_ARQUIVO_PADRAO)
+            );
+            #else
+            return COMMAND_RESULT_STORAGE_ERROR;
+            #endif
+
+        case CMD_STOP_LOG:
+            #if HABILITAR_DATALOGGER
+            return datalogger_esta_pronto()
+                ? resultado_de_status(datalogger_fechar())
+                : COMMAND_RESULT_STORAGE_ERROR;
+            #else
+            return COMMAND_RESULT_STORAGE_ERROR;
+            #endif
+
+        default:
+            return COMMAND_RESULT_INVALID_STATE;
     }
 }
 
@@ -148,7 +200,7 @@ int main(void) {
     sistema_inicializar();
 
     /* Variáveis de controle de fluxo e escalonamento */
-    dados_sensores_t sensores;
+    dados_sensores_t sensores = {0};
     uint32_t contador_ticks = 0;
 
     /* Loop Infinito a 200 Hz */
@@ -164,33 +216,39 @@ int main(void) {
          * Tarefas de 200 Hz (Executadas a cada tick)
          * ------------------------------------------------------------------ */
 
-        /* Lê todos os sensores da IMU e Barômetro */
-        if (sensores_ler_todos(&sensores) != STATUS_OK) {
-            continue;
-        }
+        #if HABILITAR_GPS
+        gps_processar();
+        #endif
 
-        /* Atualiza a fusão sensorial (Altitude, Velocidade) */
-        if (fusao_atualizar(&sensores) != STATUS_OK) {
-            continue;
-        }
-
-        /* Atualiza a máquina de estados (Detecta lançamento, apogeu, etc) */
-        fsm_atualizar(&sensores);
-
-        /* Processa comandos de rádio recebidos da base */
+        /* Comunicação e comandos continuam ativos mesmo se um sensor falhar. */
         #if HABILITAR_TELEMETRIA
+        sx1278_processar();
         protocolo_processar_recebidos();
         command_id_t cmd;
         while (protocolo_comando_disponivel()) {
             if (protocolo_obter_comando(&cmd) == STATUS_OK) {
-                fsm_processar_comando(cmd);
+                command_result_t resultado = executar_comando(cmd);
+                protocolo_enviar_resposta(cmd, (uint8_t)resultado);
             }
         }
         #endif
 
+        /* Lê todos os sensores da IMU e Barômetro */
+        bool amostra_valida = sensores_ler_todos(&sensores) == STATUS_OK;
+
+        /* Atualiza a fusão sensorial (Altitude, Velocidade) */
+        if (amostra_valida) {
+            amostra_valida = fusao_atualizar(&sensores) == STATUS_OK;
+        }
+
+        /* Atualiza a máquina de estados (Detecta lançamento, apogeu, etc) */
+        if (amostra_valida) {
+            fsm_atualizar(&sensores);
+        }
+
         /* Grava dados no cartão SD */
         #if HABILITAR_DATALOGGER
-        if (datalogger_esta_pronto() && fsm_obter_estado() > FSM_IDLE) {
+        if (amostra_valida && datalogger_esta_pronto() && fsm_obter_estado() > FSM_IDLE) {
             datalogger_escrever_sensores(&sensores);
         }
         #endif
@@ -198,7 +256,8 @@ int main(void) {
         /* ------------------------------------------------------------------
          * Tarefas de 10 Hz (Executadas a cada 20 ticks)
          * ------------------------------------------------------------------ */
-        if ((contador_ticks % (FREQ_AMOSTRAGEM_SENSORES_HZ / FREQ_TELEMETRIA_HZ)) == 0) {
+        if (amostra_valida &&
+            (contador_ticks % (FREQ_AMOSTRAGEM_SENSORES_HZ / FREQ_TELEMETRIA_HZ)) == 0) {
             #if HABILITAR_TELEMETRIA
             /* Constrói e envia pacote de telemetria */
             telemetry_packet_t pacote;
@@ -223,10 +282,6 @@ int main(void) {
          * ------------------------------------------------------------------ */
         if ((contador_ticks % FREQ_AMOSTRAGEM_SENSORES_HZ) == 0) {
             bateria_ler_tensao_mv();
-
-            #if HABILITAR_GPS
-            gps_processar();
-            #endif
         }
     }
 

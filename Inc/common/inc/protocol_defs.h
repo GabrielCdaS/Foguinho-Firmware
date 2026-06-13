@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /* ============================================================
  * Constantes do protocolo
@@ -65,6 +66,15 @@ typedef enum {
     CMD_START_LOG = 0x04,  /**< Iniciar gravação no cartão SD */
     CMD_STOP_LOG  = 0x05   /**< Parar gravação no cartão SD */
 } command_id_t;
+
+/** Resultados compartilhados nas respostas aos comandos. */
+typedef enum {
+    COMMAND_RESULT_OK = 0,
+    COMMAND_RESULT_INVALID_STATE = 1,
+    COMMAND_RESULT_SAFETY_LOCK = 2,
+    COMMAND_RESULT_STORAGE_ERROR = 3,
+    COMMAND_RESULT_HARDWARE_ERROR = 4
+} command_result_t;
 
 /* ============================================================
  * Estrutura do pacote de telemetria (empacotada)
@@ -142,5 +152,13 @@ typedef struct {
  */
 _Static_assert(sizeof(telemetry_packet_t) == PROTOCOL_PACKET_SIZE,
                "Erro: tamanho de telemetry_packet_t deve ser 34 bytes");
+_Static_assert(offsetof(telemetry_packet_t, gps_latitude) == 21,
+               "Erro: layout de GPS da telemetria foi alterado");
+_Static_assert(offsetof(telemetry_packet_t, crc16) == 32,
+               "Erro: CRC deve ocupar os dois bytes finais da telemetria");
+_Static_assert(sizeof(command_packet_t) == 5,
+               "Erro: command_packet_t deve possuir 5 bytes");
+_Static_assert(offsetof(command_packet_t, crc16) == 3,
+               "Erro: CRC deve ocupar os dois bytes finais do comando");
 
 #endif /* PROTOCOL_DEFS_H */

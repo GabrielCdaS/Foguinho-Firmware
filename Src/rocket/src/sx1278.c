@@ -11,6 +11,8 @@
 static int16_t last_rssi = 0;
 static bool inicializado = false;
 static bool recepcao_ativa = false;
+static bool transmissao_ativa = false;
+static uint32_t inicio_transmissao_ms = 0;
 
 #define SX1278_MODO_LORA       0x80U
 #define SX1278_MODO_SLEEP      0x00U
@@ -92,9 +94,10 @@ status_t sx1278_transmitir(const uint8_t *dados, uint8_t tamanho) {
     if (!inicializado || !dados || tamanho == 0U) {
         return STATUS_ERRO_GENERICO;
     }
+    if (transmissao_ativa) return STATUS_ERRO_RADIO;
 
     recepcao_ativa = false;
-    if (sx1278_modo_standby() != STATUS_OK ||
+    if (sx_escrever(SX1278_REG_OP_MODE, SX1278_MODO_LORA | SX1278_MODO_STANDBY) != STATUS_OK ||
         sx_escrever(SX1278_REG_IRQ_FLAGS, 0xFFU) != STATUS_OK ||
         sx_escrever(SX1278_REG_FIFO_ADDR_PTR, 0x00U) != STATUS_OK ||
         sx_escrever(SX1278_REG_PAYLOAD_LENGTH, tamanho) != STATUS_OK ||
@@ -104,17 +107,31 @@ status_t sx1278_transmitir(const uint8_t *dados, uint8_t tamanho) {
         return STATUS_ERRO_RADIO;
     }
 
-    uint32_t inicio = plataforma_obter_tick_ms();
-    uint8_t flags = 0;
-    do {
-        if (sx_ler(SX1278_REG_IRQ_FLAGS, &flags) != STATUS_OK) return STATUS_ERRO_RADIO;
-        if ((flags & SX1278_IRQ_TX_DONE) != 0U) {
-            sx_escrever(SX1278_REG_IRQ_FLAGS, SX1278_IRQ_TX_DONE);
-            return sx1278_modo_standby();
-        }
-    } while ((plataforma_obter_tick_ms() - inicio) < 3000U);
-    sx1278_modo_standby();
-    return STATUS_ERRO_TIMEOUT;
+    transmissao_ativa = true;
+    inicio_transmissao_ms = plataforma_obter_tick_ms();
+    return STATUS_OK;
+}
+
+status_t sx1278_processar(void) {
+    if (!inicializado || !transmissao_ativa) return STATUS_OK;
+
+    uint8_t flags;
+    if (sx_ler(SX1278_REG_IRQ_FLAGS, &flags) != STATUS_OK) {
+        transmissao_ativa = false;
+        sx1278_modo_standby();
+        return STATUS_ERRO_RADIO;
+    }
+    if ((flags & SX1278_IRQ_TX_DONE) != 0U) {
+        sx_escrever(SX1278_REG_IRQ_FLAGS, SX1278_IRQ_TX_DONE);
+        transmissao_ativa = false;
+        return sx1278_modo_standby();
+    }
+    if ((plataforma_obter_tick_ms() - inicio_transmissao_ms) >= 3000U) {
+        transmissao_ativa = false;
+        sx1278_modo_standby();
+        return STATUS_ERRO_TIMEOUT;
+    }
+    return STATUS_OK;
 }
 
 status_t sx1278_receber(uint8_t *buffer, uint8_t *tamanho, uint32_t timeout_ms) {
@@ -122,6 +139,7 @@ status_t sx1278_receber(uint8_t *buffer, uint8_t *tamanho, uint32_t timeout_ms) 
     uint8_t quantidade;
     uint8_t endereco;
     if (!inicializado || !buffer || !tamanho) return STATUS_ERRO_GENERICO;
+    if (transmissao_ativa) return STATUS_ERRO_TIMEOUT;
     *tamanho = 0;
     if (!recepcao_ativa) {
         uint8_t modo = timeout_ms == 0U ? SX1278_MODO_RX_CONT : SX1278_MODO_RX_SINGLE;
@@ -198,10 +216,12 @@ int16_t sx1278_ler_rssi(void) {
 
 status_t sx1278_modo_sleep(void) {
     recepcao_ativa = false;
+    transmissao_ativa = false;
     return sx_escrever(SX1278_REG_OP_MODE, SX1278_MODO_LORA | SX1278_MODO_SLEEP);
 }
 
 status_t sx1278_modo_standby(void) {
     recepcao_ativa = false;
+    transmissao_ativa = false;
     return sx_escrever(SX1278_REG_OP_MODE, SX1278_MODO_LORA | SX1278_MODO_STANDBY);
 }

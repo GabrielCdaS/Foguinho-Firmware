@@ -111,8 +111,11 @@ status_t fsm_processar_comando(command_id_t comando) {
             }
             break;
 
+        case CMD_PING:
+            return STATUS_OK;
+
         default:
-            break;
+            return STATUS_ERRO_GENERICO;
     }
 
     return STATUS_OK;

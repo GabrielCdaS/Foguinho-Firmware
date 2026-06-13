@@ -152,6 +152,16 @@ status_t sx1278_inicializar(void);
 status_t sx1278_transmitir(const uint8_t *dados, uint8_t tamanho);
 
 /**
+ * @brief Atualiza operações assíncronas do rádio.
+ *
+ * Deve ser chamada periodicamente para concluir transmissões, tratar timeout
+ * e liberar o rádio para voltar à recepção de comandos.
+ *
+ * @return STATUS_OK quando o rádio está ocioso ou concluiu a operação.
+ */
+status_t sx1278_processar(void);
+
+/**
  * @brief Recebe dados via LoRa com timeout.
  * @param[out] buffer     Buffer para armazenar os dados recebidos.
  * @param[out] tamanho    Ponteiro para receber o número de bytes recebidos.

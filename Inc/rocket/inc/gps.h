@@ -12,6 +12,9 @@
 #include "sensors.h"
 #include "config.h"
 
+/** Tempo máximo sem uma sentença GPS válida antes de invalidar o fix. */
+#define GPS_FIX_TIMEOUT_MS 3000U
+
 /* ============================================================================
  * Funções da Interface do GPS
  * ========================================================================= */

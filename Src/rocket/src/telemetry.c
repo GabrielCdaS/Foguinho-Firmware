@@ -8,12 +8,29 @@
 #include "crc16.h"
 #include "hal_plataforma.h"
 #include "fusion.h"
+#include <limits.h>
+#include <math.h>
 
 static uint8_t pacote_id_sequencial = 0;
 static uint32_t total_pacotes_enviados = 0;
 static uint32_t ultimo_envio_ms = 0;
 
 static telemetry_packet_t pacote_atual;
+
+static int32_t coordenada_escalada(float coordenada) {
+    if (!isfinite(coordenada)) return 0;
+    double escalada = (double)coordenada * 10000000.0;
+    if (escalada > INT32_MAX) return INT32_MAX;
+    if (escalada < INT32_MIN) return INT32_MIN;
+    return (int32_t)escalada;
+}
+
+static int16_t altitude_gps_escalada(float altitude_m) {
+    if (!isfinite(altitude_m)) return 0;
+    if (altitude_m > (float)INT16_MAX) return INT16_MAX;
+    if (altitude_m < (float)INT16_MIN) return INT16_MIN;
+    return (int16_t)altitude_m;
+}
 
 status_t telemetria_inicializar(void) {
     pacote_id_sequencial = 0;
@@ -33,14 +50,18 @@ status_t telemetria_construir_pacote(telemetry_packet_t *pacote,
 
     pacote->altitude_m = fusao_obter_altitude();
     pacote->vert_velocity_ms = fusao_obter_velocidade_vertical();
-    pacote->acceleration_g = dados->aceleracao_z_g;
+    pacote->acceleration_g = sqrtf(
+        dados->aceleracao_x_g * dados->aceleracao_x_g +
+        dados->aceleracao_y_g * dados->aceleracao_y_g +
+        dados->aceleracao_z_g * dados->aceleracao_z_g
+    );
 
     pacote->battery_mv = (uint16_t)dados->tensao_bateria_mv;
     pacote->flight_state = (uint8_t)estado;
 
-    pacote->gps_latitude = (int32_t)(dados->latitude * 10000000.0f);
-    pacote->gps_longitude = (int32_t)(dados->longitude * 10000000.0f);
-    pacote->gps_altitude_m = (int16_t)dados->gps_altitude_m;
+    pacote->gps_latitude = coordenada_escalada(dados->latitude);
+    pacote->gps_longitude = coordenada_escalada(dados->longitude);
+    pacote->gps_altitude_m = altitude_gps_escalada(dados->gps_altitude_m);
 
     pacote->gps_info = (dados->gps_satellites & 0x7F) | (dados->gps_fix_valid ? 0x80 : 0x00);
 

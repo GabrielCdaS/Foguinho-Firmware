@@ -55,6 +55,7 @@ status_t datalogger_inicializar(void) {
 }
 
 status_t datalogger_abrir_arquivo(const char *nome) {
+    if (arquivo_aberto) return STATUS_OK;
     if (!cartao_montado || !nome || nome[0] == '\0') return STATUS_ERRO_SD;
 #if DATALOGGER_TEM_FATFS
     if (f_open(&arquivo_log, nome, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK) return STATUS_ERRO_SD;
