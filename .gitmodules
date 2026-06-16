@@ -1,12 +1,12 @@
-[submodule "Drivers/STM32F4xx_HAL_Driver"]
-	path = Drivers/STM32F4xx_HAL_Driver
+[submodule "firmware/Drivers/STM32F4xx_HAL_Driver"]
+	path = firmware/Drivers/STM32F4xx_HAL_Driver
 	url = https://github.com/STMicroelectronics/stm32f4xx-hal-driver.git
-[submodule "Drivers/CMSIS/Device/ST/STM32F4xx"]
-	path = Drivers/CMSIS/Device/ST/STM32F4xx
+[submodule "firmware/Drivers/CMSIS/Device/ST/STM32F4xx"]
+	path = firmware/Drivers/CMSIS/Device/ST/STM32F4xx
 	url = https://github.com/STMicroelectronics/cmsis_device_f4.git
-[submodule "Drivers/CMSIS/Core"]
-	path = Drivers/CMSIS/Core
+[submodule "firmware/Drivers/CMSIS/Core"]
+	path = firmware/Drivers/CMSIS/Core
 	url = https://github.com/ARM-software/CMSIS_5.git
-[submodule "Middlewares/LoRaMac-node"]
-	path = Middlewares/LoRaMac-node
+[submodule "firmware/Middlewares/LoRaMac-node"]
+	path = firmware/Middlewares/LoRaMac-node
 	url = https://github.com/Lora-net/LoRaMac-node.git

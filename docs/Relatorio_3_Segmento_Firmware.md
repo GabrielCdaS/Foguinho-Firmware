@@ -41,7 +41,7 @@ O firmware lê três fontes de dados:
 
 1. **BMP388** (barômetro, SPI1, CS em PA4) — pressão e temperatura. A pressão é convertida em altitude relativa ao solo, calibrada na inicialização.
 2. **ICM-20948** (IMU 9 eixos, SPI1, CS em PB0) — aceleração, giroscópio e magnetômetro.
-3. **NEO-M8N / NEO-M9N** (GPS, USART2, PA2/PA3, 9600 bps) — parsing das sentenças NMEA `$GPGGA` e `$GPRMC`.
+3. **NEO-M9N** (GPS, USART2, PA2/PA3, 38400 bps) — parsing das sentenças NMEA `$GPGGA` e `$GPRMC`.
 
 A fusão sensorial (`fusion.c`) combina barômetro e IMU:
 

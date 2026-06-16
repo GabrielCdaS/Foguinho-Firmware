@@ -57,7 +57,7 @@ try {
         @{ Name = "USART2_IRQHandler"; Index = 54 }
     )) {
         $actual = [BitConverter]::ToUInt32($vectors, $entry.Index * 4)
-        $expected = $symbolAddresses[$entry.Name] -bor 1U
+        $expected = $symbolAddresses[$entry.Name] -bor 1
         if ($actual -ne $expected) {
             throw ("Vetor {0} aponta para 0x{1:X8}, esperado 0x{2:X8}." -f
                 $entry.Name, $actual, $expected)
@@ -67,12 +67,12 @@ try {
     Remove-Item -LiteralPath $vectorBinary -Force -ErrorAction SilentlyContinue
 }
 
-$mspSource = Get-Content -Raw (Join-Path $root "Core\Src\stm32f4xx_hal_msp.c")
+$mspSource = Get-Content -Raw (Join-Path $root "firmware\Core\Src\stm32f4xx_hal_msp.c")
 if ($mspSource -notmatch 'HAL_NVIC_EnableIRQ\(USART2_IRQn\)') {
     throw "A interrupcao USART2 nao esta habilitada no MSP."
 }
 
-$cubeSource = Get-Content -Raw (Join-Path $root "Core\Src\main.c")
+$cubeSource = Get-Content -Raw (Join-Path $root "firmware\Core\Src\main.c")
 foreach ($safetyPattern in @(
     'PYRO_MAIN_Pin\|PYRO_EMERGENCY_Pin,\s*GPIO_PIN_RESET',
     'BMP388_CS_Pin\|SD_CS_Pin,\s*GPIO_PIN_SET',

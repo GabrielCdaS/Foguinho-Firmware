@@ -37,6 +37,10 @@ set(cpu_PARAMS
 
 set(APP_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Src)
 set(APP_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Inc)
+set(FIRMWARE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/firmware)
+set(CUBE_CORE_DIR ${FIRMWARE_DIR}/Core)
+set(DRIVERS_DIR ${FIRMWARE_DIR}/Drivers)
+set(MIDDLEWARES_DIR ${FIRMWARE_DIR}/Middlewares)
 set(COMMON_SRC_DIR ${APP_SRC_DIR}/common)
 set(ROCKET_SRC_DIR ${APP_SRC_DIR}/rocket)
 set(BASE_STATION_SRC_DIR ${APP_SRC_DIR}/base_station)
@@ -70,48 +74,48 @@ set(base_station_core_SRCS
 )
 
 set(stm32_hal_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
+    ${DRIVERS_DIR}/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
 )
 
 set(stm32_hal_usb_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd_ex.c
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c
 )
 
 set(st_usb_device_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_core.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_core.c
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
 )
 
 set(semtech_radio_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/radio/sx1276/sx1276.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/utilities.c
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/radio/sx1276/sx1276.c
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/utilities.c
 )
 
 set(sources_SRCS
     ${APP_SRC_DIR}/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32f4xx_hal_msp.c
+    ${CUBE_CORE_DIR}/Src/main.c
+    ${CUBE_CORE_DIR}/Src/stm32f4xx_hal_msp.c
     ${common_SRCS}
     ${platform_stm32f411_SRCS}
     ${rocket_SRCS}
@@ -121,19 +125,19 @@ set(sources_SRCS
 
 # Include directories for all compilers
 set(include_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${CUBE_CORE_DIR}/Inc
     ${APP_INC_DIR}
     ${COMMON_INC_DIR}
     ${PLATFORM_STM32F411_INC_DIR}
     ${ROCKET_INC_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Core/CMSIS/Core/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/system
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/radio
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Inc
+    ${DRIVERS_DIR}/CMSIS/Core/CMSIS/Core/Include
+    ${DRIVERS_DIR}/CMSIS/Device/ST/STM32F4xx/Include
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Inc
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/system
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/radio
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Inc
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Inc
 )
 
 # Include directories for each compiler
@@ -191,9 +195,9 @@ target_compile_options(base_station_core PRIVATE
 add_executable(foguinho_base)
 target_sources(foguinho_base PRIVATE
     ${BASE_STATION_SRC_DIR}/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32f4xx_hal_msp.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32f4xx_it.c
+    ${CUBE_CORE_DIR}/Src/main.c
+    ${CUBE_CORE_DIR}/Src/stm32f4xx_hal_msp.c
+    ${CUBE_CORE_DIR}/Src/stm32f4xx_it.c
     ${APP_SRC_DIR}/startup_stm32f411xx.S
     ${APP_SRC_DIR}/syscall.c
     ${APP_SRC_DIR}/sysmem.c
@@ -206,19 +210,19 @@ target_sources(foguinho_base PRIVATE
     ${st_usb_device_SRCS}
 )
 target_include_directories(foguinho_base PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${CUBE_CORE_DIR}/Inc
     ${APP_INC_DIR}
     ${COMMON_INC_DIR}
     ${BASE_STATION_INC_DIR}
     ${PLATFORM_STM32F411_INC_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Core/CMSIS/Core/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/system
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/radio
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Inc
+    ${DRIVERS_DIR}/CMSIS/Core/CMSIS/Core/Include
+    ${DRIVERS_DIR}/CMSIS/Device/ST/STM32F4xx/Include
+    ${DRIVERS_DIR}/STM32F4xx_HAL_Driver/Inc
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/system
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/radio
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Inc
+    ${MIDDLEWARES_DIR}/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Inc
 )
 target_compile_definitions(foguinho_base PRIVATE
     ${symbols_SYMB}

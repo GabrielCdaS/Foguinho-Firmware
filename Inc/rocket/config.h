@@ -92,7 +92,7 @@
 /** Habilita o módulo de GPS (NEO-M8N/NEO-M9N) */
 #define HABILITAR_GPS           1
 
-/** Baudrate do módulo GPS (9600 para NEO-M8N, 38400 para NEO-M9N) */
-#define GPS_BAUDRATE            9600
+/** Baudrate do módulo GPS (NEO-M9N: padrão de fábrica 38400 bps) */
+#define GPS_BAUDRATE            38400
 
 #endif /* CONFIG_H */
