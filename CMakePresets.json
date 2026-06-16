@@ -11,7 +11,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_MAKE_PROGRAM": "$env{LOCALAPPDATA}/stm32cube/bundles/ninja/1.13.2+st.1/bin/ninja.exe",
                 "CMSIS_Dvendor": "STMicroelectronics:13",
-                "CMSIS_Dname": "STM32F411VET6",
+                "CMSIS_Dname": "STM32F411CEU6",
                 "CMSIS_Dcore": "Cortex-M4",
                 "CMSIS_Dtz": "NO_TZ",
                 "CMSIS_Dfpu": "SP_FPU",

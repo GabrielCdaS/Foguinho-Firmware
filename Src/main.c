@@ -34,6 +34,7 @@ volatile bool tick_pendente = false;
  * Tratador de Interrupção do SysTick
  * ========================================================================= */
 void SysTick_Handler(void) {
+    HAL_IncTick();
     ms_ticks++;
     #if HABILITAR_RECUPERACAO
     recuperacao_processar();
@@ -98,6 +99,7 @@ static void callback_transicao_estado(flight_state_t anterior, flight_state_t no
  * ========================================================================= */
 static void sistema_inicializar(void) {
     /* 1. Inicializa o clock e SysTick */
+    hw_clock_init();
     plataforma_inicializar_systick();
 
     /* 2. Inicializa os módulos de Hardware */

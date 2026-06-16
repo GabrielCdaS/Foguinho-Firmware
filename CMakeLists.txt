@@ -12,7 +12,7 @@
 #
 # -----------------------------------------------------------------------------
 
- cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20)
 
 #
 # This file is generated only once, and is not re-generated.
@@ -35,17 +35,105 @@ set(cpu_PARAMS
     # -mcpu, -mfloat, -mfloat-abi, ...
 )
 
-# Sources
-file(GLOB_RECURSE sources_SRCS CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Src/*.c"
+set(APP_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Src)
+set(APP_INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Inc)
+set(COMMON_SRC_DIR ${APP_SRC_DIR}/common)
+set(ROCKET_SRC_DIR ${APP_SRC_DIR}/rocket)
+set(BASE_STATION_SRC_DIR ${APP_SRC_DIR}/base_station)
+set(PLATFORM_STM32F411_SRC_DIR ${APP_SRC_DIR}/platform/stm32f411)
+set(COMMON_INC_DIR ${APP_INC_DIR}/common)
+set(ROCKET_INC_DIR ${APP_INC_DIR}/rocket)
+set(BASE_STATION_INC_DIR ${APP_INC_DIR}/base_station)
+set(PLATFORM_STM32F411_INC_DIR ${APP_INC_DIR}/platform/stm32f411)
+
+# Sources are intentionally split by firmware. Rocket and base-station code
+# contain headers with the same names and must never be compiled as one image.
+file(GLOB common_SRCS CONFIGURE_DEPENDS
+    "${COMMON_SRC_DIR}/*.c"
+)
+file(GLOB rocket_SRCS CONFIGURE_DEPENDS
+    "${ROCKET_SRC_DIR}/*.c"
+)
+file(GLOB base_station_SRCS CONFIGURE_DEPENDS
+    "${BASE_STATION_SRC_DIR}/*.c"
+)
+list(REMOVE_ITEM base_station_SRCS
+    ${BASE_STATION_SRC_DIR}/main.c
+)
+file(GLOB platform_stm32f411_SRCS CONFIGURE_DEPENDS
+    "${PLATFORM_STM32F411_SRC_DIR}/*.c"
+)
+set(base_station_core_SRCS
+    ${BASE_STATION_SRC_DIR}/command.c
+    ${BASE_STATION_SRC_DIR}/protocol.c
+    ${BASE_STATION_SRC_DIR}/telemetry_parser.c
+)
+
+set(stm32_hal_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
+)
+
+set(stm32_hal_usb_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c
+)
+
+set(st_usb_device_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_core.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+)
+
+set(semtech_radio_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/radio/sx1276/sx1276.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/utilities.c
+)
+
+set(sources_SRCS
+    ${APP_SRC_DIR}/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32f4xx_hal_msp.c
+    ${common_SRCS}
+    ${platform_stm32f411_SRCS}
+    ${rocket_SRCS}
+    ${stm32_hal_SRCS}
+    ${semtech_radio_SRCS}
 )
 
 # Include directories for all compilers
 set(include_DIRS
-	${CMAKE_CURRENT_SOURCE_DIR}/Inc
-	${CMAKE_CURRENT_SOURCE_DIR}/Inc/common/inc
-	${CMAKE_CURRENT_SOURCE_DIR}/Inc/rocket/inc
-	${CMAKE_CURRENT_SOURCE_DIR}/Inc/base_station/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${APP_INC_DIR}
+    ${COMMON_INC_DIR}
+    ${PLATFORM_STM32F411_INC_DIR}
+    ${ROCKET_INC_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Core/CMSIS/Core/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/system
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/radio
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Inc
 )
 
 # Include directories for each compiler
@@ -53,7 +141,10 @@ set(include_c_DIRS)
 set(include_asm_DIRS)
 
 # Symbols definition for all compilers
-set(symbols_SYMB)
+set(symbols_SYMB
+    STM32F411xE
+    USE_HAL_DRIVER
+)
 
 # Symbols definition for each compiler
 set(symbols_c_SYMB)
@@ -79,6 +170,91 @@ include("cmake/vscode_generated.cmake")
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
+
+# Hardware-independent base-station logic. The final base-station firmware
+# links this library to board-specific SX1278 and USB CDC implementations.
+add_library(base_station_core STATIC
+    ${common_SRCS}
+    ${base_station_core_SRCS}
+)
+target_include_directories(base_station_core PUBLIC
+    ${COMMON_INC_DIR}
+    ${BASE_STATION_INC_DIR}
+)
+target_compile_options(base_station_core PRIVATE
+    ${cpu_PARAMS}
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+add_executable(foguinho_base)
+target_sources(foguinho_base PRIVATE
+    ${BASE_STATION_SRC_DIR}/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32f4xx_hal_msp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32f4xx_it.c
+    ${APP_SRC_DIR}/startup_stm32f411xx.S
+    ${APP_SRC_DIR}/syscall.c
+    ${APP_SRC_DIR}/sysmem.c
+    ${common_SRCS}
+    ${platform_stm32f411_SRCS}
+    ${base_station_SRCS}
+    ${stm32_hal_SRCS}
+    ${stm32_hal_usb_SRCS}
+    ${semtech_radio_SRCS}
+    ${st_usb_device_SRCS}
+)
+target_include_directories(foguinho_base PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${APP_INC_DIR}
+    ${COMMON_INC_DIR}
+    ${BASE_STATION_INC_DIR}
+    ${PLATFORM_STM32F411_INC_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Core/CMSIS/Core/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/system
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/radio
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Core/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/LoRaMac-node/src/boards/mcu/stm32/STM32_USB_Device_Library/Class/CDC/Inc
+)
+target_compile_definitions(foguinho_base PRIVATE
+    ${symbols_SYMB}
+    BASE_STATION_FIRMWARE
+    $<$<CONFIG:Debug>:DEBUG>
+)
+target_compile_options(foguinho_base PRIVATE
+    ${cpu_PARAMS}
+    ${compiler_OPTS}
+    -fstack-usage
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wno-unused-parameter
+    $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp -MMD -MP>
+    $<$<CONFIG:Debug>:-O0 -g3 -ggdb>
+    $<$<CONFIG:Release>:-Os>
+)
+target_link_directories(foguinho_base PRIVATE ${link_DIRS})
+target_link_libraries(foguinho_base PRIVATE ${link_LIBS} m)
+target_link_options(foguinho_base PRIVATE
+    -T${linker_script_SRC}
+    ${cpu_PARAMS}
+    ${linker_OPTS}
+    -Wl,-Map=foguinho_base.map
+    -u _printf_float
+    --specs=nosys.specs
+    -Wl,-z,max-page-size=8
+    -Wl,--print-memory-usage
+)
+set_target_properties(foguinho_base PROPERTIES LINK_DEPENDS ${linker_script_SRC})
+add_custom_command(TARGET foguinho_base POST_BUILD
+    COMMAND ${CMAKE_SIZE} $<TARGET_FILE:foguinho_base>
+    COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:foguinho_base> foguinho_base.hex
+    COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:foguinho_base> foguinho_base.bin
+)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${link_DIRS})
